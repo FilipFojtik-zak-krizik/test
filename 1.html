@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title> Lyžování </title>
+</head>
+<style>
+    body {
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        height: 1080px;
+        background-color: antiquewhite;
+    }
+    .lyzar {
+        width: 40px;
+        height: 40px;
+        position: relative;
+        background: green;
+        overflow: hidden;
+    }
+    .tlacitko {
+        height: 40px;
+        width: 100px;
+        background-color: green;
+        color: white;
+        font-family: arial, sans-serif;
+        font-size: 30px;
+        border: none;
+        cursor: pointer;
+        margin: 40px;
+    }
+    h1 {
+        font-size: 24px;
+        color: black;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+</style>
+
+<body>
+<h1>Text o hře</h1>
+<button class="tlacitko">Start</button>
+ <div id="skore"></div>
+ <div id="lyzar"></div>
+
+
+</body>
+
+<script>
+    const vypisSkore = document.getElementById('skore');
+let skore = 0;
+</script>
+</html>
