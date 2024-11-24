@@ -41,7 +41,7 @@
 
 <body>
 <h1>Text o hře</h1>
-<button class="tlacitko">Start</button>
+<button class="tlacitko" id="startButton">Start</button>
  <div id="skore"></div>
  <div id="lyzar"></div>
 
@@ -49,7 +49,32 @@
 </body>
 
 <script>
+    const lyzar = document.getElementById('lyzar');
     const vypisSkore = document.getElementById('skore');
-let skore = 0;
+    const startButton = document.getElementById('startButton');
+    const body = document.body;
+
+    let skore = 0;
+    let gameRunning = false;
+    let intervalId;
+
+    let lyzarPosition = { x: window.innerWidth / 2 - 20, y: window.innerHeight - 100 };
+        lyzar.style.left = `${lyzarPosition.x}px`;
+        lyzar.style.top = `${lyzarPosition.y}px`;
+
+    // Pohyb lyžaře podle myši
+    body.addEventListener('mousemove', (e) => {
+        if (!gameRunning) return;
+        lyzarPosition.x = e.clientX - 20; // Lyžař je vycentrovaný kolem myši
+        lyzar.style.left = `${lyzarPosition.x}px`;
+    });
+
+    startButton.addEventListener('click', () => {
+        startButton.style.display = 'none';
+        skore = 0;
+        vypisSkore.textContent = `Skóre: ${skore}`;
+        gameRunning = true;
+        intervalId = setInterval(updateGame, 500);
 </script>
+
 </html>
