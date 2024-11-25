@@ -58,7 +58,18 @@
         color: black;
     }
 
-</style
+
+    #lyzar {
+        position: absolute; /* Umožňuje volný pohyb */
+        width: 98px;
+        height: 152px;
+    }
+
+    #lyzar img {
+        width: 120%;
+        height: 120%;
+    }
+</style>
 
     <header>
         <h1>Lyžování - vyhni se stromům</h1>
@@ -81,24 +92,26 @@
     let gameRunning = false;
     let intervalId;
 
-    let lyzarPosition = { x: window.innerWidth / 2 - 20, y: window.innerHeight - 100 };
+    let lyzarPosition = { x: window.innerWidth / 2 -59, y: 105 };
     lyzar.style.left = `${lyzarPosition.x}px`;
     lyzar.style.top = `${lyzarPosition.y}px`;
 
     // Pohyb lyžaře podle myši
-    body.addEventListener('mousemove', (e) => {
-        if (!gameRunning) return;
-        lyzarPosition.x = e.clientX - 20; // Lyžař je vycentrovaný kolem myši
-        lyzar.style.left = `${lyzarPosition.x}px`;
-    });
+    function enableMouseControl() {
+        window.addEventListener('mousemove', (e) => {
+            if (!gameRunning) return;
+            lyzarPosition.x = e.clientX - 20; // Lyžař je vycentrovaný kolem myši
+            lyzar.style.left = `${lyzarPosition.x}px`;
+        });
+    }
 
-    // Start hry
+    // Po kliknutí na tlačítko Start
     startButton.addEventListener('click', () => {
-        startButton.style.display = 'none';
+        startButton.style.display = 'none'; // Skryje tlačítko
         skore = 0;
         vypisSkore.textContent = `Skóre: ${skore}`;
         gameRunning = true;
-        intervalId = setInterval(updateGame, 500);
+        enableMouseControl(); // Aktivuje pohyb lyžaře podle myši
     });
 </script>
 
