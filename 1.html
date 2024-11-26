@@ -69,6 +69,14 @@
         width: 120%;
         height: 120%;
     }
+
+    .strom {
+        position: absolute;
+        width: 350px;
+        height: 350px;
+        background-size: cover;
+        background-image: url('strom.png'); /* Cesta k obrázku stromu */
+    }
 </style>
 
     <header>
@@ -80,17 +88,16 @@
  <div id="lyzar"> <img src="lyzar.png" alt="lyzar"></div>
 
 
-</body>
-
 <script>
     const lyzar = document.getElementById('lyzar');
     const vypisSkore = document.getElementById('skore');
     const startButton = document.getElementById('startButton');
-    const body = document.body;
+    const strom = document.getElementById('strom');
+    const body = document.body
 
     let skore = 0;
     let gameRunning = false;
-    let intervalId;
+    let novyStrom;
 
     let lyzarPosition = { x: window.innerWidth / 2 -59, y: 105 };
     lyzar.style.left = `${lyzarPosition.x}px`;
@@ -105,14 +112,39 @@
         });
     }
 
-    // Po kliknutí na tlačítko Start
+    function generatorStromu() {
+        const strom = document.createElement('div');
+        strom.classList.add('strom');
+        strom.style.left = `${Math.random() * (window.innerWidth - 60)}px`;
+        strom.style.top = `${window.innerHeight}px`;
+        body.appendChild(strom);
+
+        const posunStromu = setInterval(() => {
+            const currentTop = parseFloat(strom.style.top);
+            if (currentTop <= -300) {
+                clearInterval(posunStromu); // Zastav pohyb, pokud je strom mimo obrazovku
+               strom.remove();
+            } else {
+                strom.style.top = `${currentTop - 5}px`; // Posouvá strom nahoru
+            }
+        }, 30);
+    }
+
     startButton.addEventListener('click', () => {
-        startButton.style.display = 'none'; // Skryje tlačítko
+        startButton.style.display = 'none'; //
         skore = 0;
         vypisSkore.textContent = `Skóre: ${skore}`;
         gameRunning = true;
         enableMouseControl(); // Aktivuje pohyb lyžaře podle myši
     });
+    // Generuj nové stromy
+    novyStrom = setInterval(() => {
+        if (gameRunning) {
+            generatorStromu();
+        }
+    }, 1500);
 </script>
+
+</body>
 
 </html>
