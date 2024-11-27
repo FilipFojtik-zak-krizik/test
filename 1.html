@@ -75,7 +75,7 @@
         width: 350px;
         height: 350px;
         background-size: cover;
-        background-image: url('strom.png'); /* Cesta k obrázku stromu */
+        background-image: url('strom.png');
     }
 </style>
 
@@ -92,7 +92,6 @@
     const lyzar = document.getElementById('lyzar');
     const vypisSkore = document.getElementById('skore');
     const startButton = document.getElementById('startButton');
-    const strom = document.getElementById('strom');
     const body = document.body
 
     let skore = 0;
@@ -112,6 +111,19 @@
         });
     }
 
+    // Funkce pro detekci kolize mezi lyžařem a stromem
+    function kolize(lyzar, strom) {
+        const lyzarRect = lyzar.getBoundingClientRect();
+        const stromRect = strom.getBoundingClientRect();
+
+        return (
+            lyzarRect.left < stromRect.left + stromRect.width &&
+            lyzarRect.left + lyzarRect.width > stromRect.left &&
+            lyzarRect.top < stromRect.top + stromRect.height &&
+            lyzarRect.height + lyzarRect.top > stromRect.top
+        );
+    }
+
     function generatorStromu() {
         const strom = document.createElement('div');
         strom.classList.add('strom');
@@ -125,9 +137,19 @@
                 clearInterval(posunStromu); // Zastav pohyb, pokud je strom mimo obrazovku
                strom.remove();
             } else {
-                strom.style.top = `${currentTop - 5}px`; // Posouvá strom nahoru
+                strom.style.top = `${currentTop - 5}px`;
+                if (kolize(lyzar, strom)) {
+                    clearInterval(posunStromu);
+                    gameOver();
+                }
             }
         }, 30);
+    }
+
+    function gameOver() {
+        gameRunning = false;
+        alert('Srážka! Hra skončila.');
+        location.reload(); // Restart hry
     }
 
     startButton.addEventListener('click', () => {
@@ -148,3 +170,9 @@
 </body>
 
 </html>
+
+
+<!--pauza-->
+<!--zrychlování stromů -->
+<!--sbírání bodů (jako stromy ale přičítaj se ke skore)-->
+<!--časovej limit? jestli zbyde časovej limit-->
