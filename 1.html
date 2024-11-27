@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title> Lyžování </title>
+    <title>Lyžování</title>
 </head>
 <style>
     body {
@@ -58,47 +58,43 @@
         color: black;
     }
 
-
     #lyzar {
         position: absolute; /* Umožňuje volný pohyb */
         width: 98px;
         height: 152px;
     }
 
-    #lyzar img {
-        width: 120%;
-        height: 120%;
-    }
-
     .strom {
         position: absolute;
-        width: 350px;
-        height: 350px;
+        width: 320px;
+        height: 320px;
         background-size: cover;
-        background-image: url('strom.png');
+        background-image: url('strom.png'); /* Odkaz na obrázek stromu */
+        border-radius: 50%;
     }
+
 </style>
 
-    <header>
-        <h1>Lyžování - vyhni se stromům</h1>
-        <button class="tlacitko" id="startButton">Start</button>
-    </header>
+<header>
+    <h1>Lyžování - vyhni se stromům</h1>
+    <button class="tlacitko" id="startButton">Start</button>
+</header>
 <body>
- <div id="skore"></div>
- <div id="lyzar"> <img src="lyzar.png" alt="lyzar"></div>
-
+<div id="skore">Skóre: 0</div>
+<div id="lyzar"> <img src="lyzar.png" alt="lyzar"></div>
 
 <script>
     const lyzar = document.getElementById('lyzar');
     const vypisSkore = document.getElementById('skore');
     const startButton = document.getElementById('startButton');
-    const body = document.body
+    const body = document.body;
 
+    let rychlost = 7;
     let skore = 0;
     let gameRunning = false;
     let novyStrom;
 
-    let lyzarPosition = { x: window.innerWidth / 2 -59, y: 105 };
+    let lyzarPosition = { x: window.innerWidth / 2 - 59, y: 105 };
     lyzar.style.left = `${lyzarPosition.x}px`;
     lyzar.style.top = `${lyzarPosition.y}px`;
 
@@ -127,17 +123,20 @@
     function generatorStromu() {
         const strom = document.createElement('div');
         strom.classList.add('strom');
-        strom.style.left = `${Math.random() * (window.innerWidth - 60)}px`;
+        strom.style.left = `${Math.random() * (window.innerWidth - 100)}px`;
         strom.style.top = `${window.innerHeight}px`;
         body.appendChild(strom);
 
+        // Posun stromu
         const posunStromu = setInterval(() => {
             const currentTop = parseFloat(strom.style.top);
             if (currentTop <= -300) {
-                clearInterval(posunStromu); // Zastav pohyb, pokud je strom mimo obrazovku
-               strom.remove();
+                clearInterval(posunStromu);
+                strom.remove();
+                skore += 1; // Přidáme bod za přežitý strom
+                vypisSkore.textContent = `Skóre: ${skore}`;
             } else {
-                strom.style.top = `${currentTop - 5}px`;
+                strom.style.top = `${currentTop - rychlost}px`; // Rychlost pohybu
                 if (kolize(lyzar, strom)) {
                     clearInterval(posunStromu);
                     gameOver();
@@ -153,18 +152,26 @@
     }
 
     startButton.addEventListener('click', () => {
-        startButton.style.display = 'none'; //
+        startButton.style.display = 'none';
         skore = 0;
         vypisSkore.textContent = `Skóre: ${skore}`;
         gameRunning = true;
         enableMouseControl(); // Aktivuje pohyb lyžaře podle myši
+
+        // Generování stromů každých 1500 ms
+        novyStrom = setInterval(() => {
+            if (gameRunning) {
+                generatorStromu();
+            }
+        }, 1500);
+
+        // Zrychlování hry každé 2 sekundy
+        setInterval(() => {
+            if (gameRunning) {
+                rychlost += 1; // Zvyšujeme rychlost
+            }
+        }, 2500);
     });
-    // Generuj nové stromy
-    novyStrom = setInterval(() => {
-        if (gameRunning) {
-            generatorStromu();
-        }
-    }, 1500);
 </script>
 
 </body>
@@ -173,6 +180,5 @@
 
 
 <!--pauza-->
-<!--zrychlování stromů -->
 <!--sbírání bodů (jako stromy ale přičítaj se ke skore)-->
 <!--časovej limit? jestli zbyde časovej limit-->
