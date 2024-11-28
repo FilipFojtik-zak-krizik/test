@@ -24,6 +24,7 @@
         border-radius: 50%;
         box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
         animation: padani 8s linear infinite;
+        z-index: 2
     }
 
     /* Animace pohybu sněhových vloček */
@@ -45,6 +46,7 @@
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         position: relative;
         border-bottom: 5px solid #ffffff33; /* Jemné ohraničení */
+        z-index: 2;
     }
 
     header h1 {
@@ -55,6 +57,7 @@
         letter-spacing: 2px;
         text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.4); /* Textový stín */
         animation: textGlow 2s ease-in-out infinite alternate; /* Animace textu */
+        z-index: 2
     }
 
     header .tlacitko {
@@ -69,6 +72,7 @@
         cursor: pointer;
         border-radius: 5px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        z-index: 2
     }
 
     header .tlacitko:hover {
@@ -91,39 +95,88 @@
         left: 10px;
         font-size: 20px;
         color: #ffffff;
+        z-index: 2
+    }
+
+    #cas {
+        position: absolute;
+        top: 10px;
+        left: 150px;
+        font-size: 20px;
+        color: #ffffff;
+        z-index: 2
     }
 
     #lyzar {
         position: absolute; /* Umožňuje volný pohyb */
-        width: 98px;
-        height: 152px;
+        width: 118px;
+        height: 182px;
     }
     #lyzar img {
-        width: 100%;
-        height: 100%;
+        width: 120%;
+        height: 120%;
     }
 
     .strom {
         position: absolute;
-        width: 320px;
-        height: 320px;
+        width: 400px;
+        height: 400px;
         background-size: cover;
         background-image: url('strom.png'); /* Odkaz na obrázek stromu */
+        z-index: 1;
     }
 
     #muteButton {
         position: absolute;
+        top: -10px;
         right: 5px;
         background: none;
         border: none;
         cursor: pointer;
-        margin-top: -3px;
+        z-index: 2
     }
 
     #muteIcon {
         width: 100px;
         height: 100px;
+        z-index: 2
     }
+
+    /*#highscore {*/
+    /*    margin-top: 20px;*/
+    /*    background-color: #f5f5f5;*/
+    /*    padding: 10px;*/
+    /*    width: 300px;*/
+    /*    display: none;*/
+    /*}*/
+
+    /*#highscore table {*/
+    /*    width: 100%;*/
+    /*}*/
+
+    /*#highscore table th, td {*/
+    /*    padding: 5px;*/
+    /*    text-align: left;*/
+    /*    border-bottom: 1px solid #ddd;*/
+    /*}*/
+
+    /*#highscore input {*/
+    /*    padding: 5px;*/
+    /*    width: 100%;*/
+    /*    margin-top: 10px;*/
+    /*}*/
+
+    /*#highscore button {*/
+    /*    padding: 5px;*/
+    /*    background-color: #5C6BC0;*/
+    /*    color: white;*/
+    /*    border: none;*/
+    /*    cursor: pointer;*/
+    /*}*/
+
+    /*#highscore button:hover {*/
+    /*    background-color: #3E4A89;*/
+    /*}*/
 
 </style>
 
@@ -135,7 +188,22 @@
 <div id="snehovy-kontejner"></div>
 
 <div id="skore">Skóre: 0</div>
+<div id="cas">Čas: 0</div>
 <div id="lyzar"> <img src="lyzar.png" alt="lyzar"></div>
+
+<!--<div id="highscore">-->
+<!--    <h3>Vyplňte své jméno:</h3>-->
+<!--    <input type="text" id="playerName" placeholder="Vaše jméno">-->
+<!--    <button id="submitScore">Uložit skóre</button>-->
+<!--    <h3>Highscore</h3>-->
+<!--    <table id="highscoreTable">-->
+<!--        <tr>-->
+<!--            <th>Jméno</th>-->
+<!--            <th>Skóre</th>-->
+<!--        </tr>-->
+<!--    </table>-->
+<!--    <button id="resetGame" style="display: none;">Nová hra</button>-->
+<!--</div>-->
 
 <audio id="kolizeZvuk" src="kolize.mp3"></audio>
 <audio id="hudba" src="hudba.mp3" loop></audio>
@@ -143,7 +211,6 @@
 <button id="muteButton">
     <img src="reprON.png" alt="Zvuk zapnut" id="muteIcon">
 </button>
-
 <script>
     const lyzar = document.getElementById('lyzar');
     const vypisSkore = document.getElementById('skore');
@@ -154,148 +221,207 @@
     const muteButton = document.getElementById('muteButton');
     const muteIcon = document.getElementById('muteIcon');
 
-
     kolizeZvuk.volume = 0.2;
     let rychlost = 7;
     let skore = 0;
     let gameRunning = false;
-    let novyStrom;
+    let stromInterval = 1500; // Původní interval generování stromů
     let zvukZapnut = true;
+    let dobaCasu = 0;
+    let intervalCasu;
 
-    let lyzarPosition = { x: window.innerWidth / 2 - 51, y: 150 };
+    let lyzarPosition = { x: window.innerWidth / 2 - 72, y: 150 };
     lyzar.style.left = `${lyzarPosition.x}px`;
     lyzar.style.top = `${lyzarPosition.y}px`;
-
-    // Pohyb lyžaře podle myši
-    function enableMouseControl() {
-        window.addEventListener('mousemove', (e) => {
-            if (!gameRunning) return;
-            lyzarPosition.x = e.clientX - 20; // Lyžař je vycentrovaný kolem myši
-            lyzar.style.left = `${lyzarPosition.x}px`;
-        });
-    }
-
-    startButton.addEventListener('click', () => {
-        hudba.play(); //
-    });
-
-    muteButton.addEventListener('click', () => {
-        zvukZapnut = !zvukZapnut;  // Přepnutí stavu zvuku (true/false)
-
-        if (zvukZapnut) {
-            // Zapnout zvuk – obnovit původní hlasitosti
-            hudba.volume = 0;
-            kolizeZvuk.volume = 0;
-            muteIcon.src = "reprOFF.png";  // Změna obrázku na vypnutý zvuk
-        } else {
-            // Vypnout zvuk – nastavit hlasitost na 0
-            hudba.volume = 1;
-            kolizeZvuk.volume = 0.2;
-            muteIcon.src = "reprON.png";  // Změna obrázku na zapnutý zvukbackgroundMusic.volume = 0;
-        }
-    });
-
-    // Funkce pro detekci kolize mezi lyžařem a stromem
-    function kolize(lyzar, strom) {
-        const lyzarRect = lyzar.getBoundingClientRect();
-        const stromRect = strom.getBoundingClientRect();
-
-        return (
-            lyzarRect.left < stromRect.left + stromRect.width &&
-            lyzarRect.left + lyzarRect.width > stromRect.left &&
-            lyzarRect.top < stromRect.top + stromRect.height &&
-            lyzarRect.height + lyzarRect.top > stromRect.top
-        );
-    }
-
-    function generatorStromu() {
-        const strom = document.createElement('div');
-        strom.classList.add('strom');
-        strom.style.left = `${Math.random() * (window.innerWidth - 100)}px`;
-        strom.style.top = `${window.innerHeight}px`;
-        body.appendChild(strom);
-
-        // Posun stromu
-        const posunStromu = setInterval(() => {
-            const currentTop = parseFloat(strom.style.top);
-            if (currentTop <= -300) {
-                clearInterval(posunStromu);
-                strom.remove();
-                skore += 1; // Přidáme bod za přežitý strom
-                vypisSkore.textContent = `Skóre: ${skore}`;
-            } else {
-                strom.style.top = `${currentTop - rychlost}px`; // Rychlost pohybu
-                if (kolize(lyzar, strom)) {
-                    clearInterval(posunStromu);
-                    gameOver();
-                }
-            }
-        }, 30);
-    }
-
-    function vytvorVlocku() {
-        const container = document.getElementById('snehovy-kontejner') || document.body;
-        const vlocka = document.createElement('div');
-        vlocka.classList.add('snehova-vlocka');
-
-        const velikost = Math.random() * 8 + 5; // Velikost vločky
-        vlocka.style.left = `${Math.random() * window.innerWidth}px`;
-        vlocka.style.width = `${velikost}px`;
-        vlocka.style.height = `${velikost}px`;
-        vlocka.style.animationDuration = `${Math.random() * 5 + (velikost < 8 ? 8 : 3)}s`; // Menší vločky padají pomaleji
-        vlocka.style.animationDelay = `${Math.random() * 3}s`;
-
-        // Paralelní pohyb: různé směry, i diagonálně
-        const smer = Math.random() > 0.5 ? 1 : -1;
-        vlocka.style.transform = `translateX(${smer * (Math.random() * 10)}px)`;
-
-        container.appendChild(vlocka);
-
-        setTimeout(() => {
-            vlocka.remove();
-        }, 10000);
-    }
-
-    // Vločky se nyní generují častěji a s různou rychlostí
-    setInterval(vytvorVlocku, 100);
-
-    function gameOver() {
-        hudba.pause(); // Zastavíme hudbu
-        kolizeZvuk.play();
-        gameRunning = false;
-        alert(`Srážka! Hra skončila, Skóre: ${skore}`);
-        location.reload(); // Restart hry
-    }
 
     startButton.addEventListener('click', () => {
         startButton.style.display = 'none';
         skore = 0;
         vypisSkore.textContent = `Skóre: ${skore}`;
         gameRunning = true;
-        enableMouseControl(); // Aktivuje pohyb lyžaře podle myši
+        enableMouseControl();
+        startCasu();
+        hudba.play();
+
+        function kolize(lyzar, strom) {
+            const lyzarRect = lyzar.getBoundingClientRect();
+            const stromRect = strom.getBoundingClientRect();
+
+            const stromStredX = stromRect.left + stromRect.width / 2;
+            const stromStredY = stromRect.top + stromRect.height / 2;
+
+            const lyzarStredX = lyzarRect.left + lyzarRect.width / 2;
+            const lyzarStredY = lyzarRect.top + lyzarRect.height / 2;
+
+            const vzdalenost = Math.sqrt(Math.pow(lyzarStredX - stromStredX, 2) + Math.pow(lyzarStredY - stromStredY, 2));
+
+            const polomerStromu = stromRect.width / 2;
+
+            return vzdalenost < polomerStromu;
+        }
+
+        function enableMouseControl() {
+            window.addEventListener('mousemove', (e) => {
+                if (!gameRunning) return;
+                lyzarPosition.x = e.clientX - 20; // Lyžař je vycentrovaný kolem myši
+                lyzar.style.left = `${lyzarPosition.x}px`;
+            });
+        }
+
+        function generatorStromu() {
+            const strom = document.createElement('div');
+            strom.classList.add('strom');
+            strom.style.left = `${Math.random() * (window.innerWidth - 100)}px`;
+            strom.style.top = `${window.innerHeight}px`;
+            body.appendChild(strom);
+
+            const posunStromu = setInterval(() => {
+                const currentTop = parseFloat(strom.style.top);
+                if (currentTop <= -300) {
+                    clearInterval(posunStromu);
+                    strom.remove();
+                    skore += 1; // Přidáme bod za přežitý strom
+                    vypisSkore.textContent = `Skóre: ${skore}`;
+                } else {
+                    strom.style.top = `${currentTop - rychlost}px`; // Rychlost pohybu
+                    if (kolize(lyzar, strom)) {
+                        clearInterval(posunStromu);
+                        gameOver();
+                    }
+                }
+            }, 30);
+        }
 
         // Generování stromů každých 1500 ms
-        novyStrom = setInterval(() => {
+        let novyStrom = setInterval(() => {
             if (gameRunning) {
                 generatorStromu();
             }
-        }, 1500);
+        }, stromInterval);
+        function startCasu() {
+            startCasu = Date.now();
+            intervalCasu = setInterval(updateTime, 1000);
+        }
+
+        function updateTime() {
+            dobaCasu = Math.floor((Date.now() - startCasu) / 1000);
+            document.getElementById('cas').textContent = `Čas: ${dobaCasu} s`;
+        }
+
+        muteButton.addEventListener('click', () => {
+            zvukZapnut = !zvukZapnut;
+
+            if (zvukZapnut) {
+                hudba.volume = 0;
+                kolizeZvuk.volume = 0;
+                muteIcon.src = "reprOFF.png";
+            } else {
+                hudba.volume = 0.9;
+                kolizeZvuk.volume = 0.2;
+                muteIcon.src = "reprON.png";
+            }
+        });
+
+        function vytvorVlocku() {
+            const container = document.getElementById('snehovy-kontejner') || document.body;
+            const vlocka = document.createElement('div');
+            vlocka.classList.add('snehova-vlocka');
+
+            const velikost = Math.random() * 8 + 5;
+            vlocka.style.left = `${Math.random() * window.innerWidth}px`;
+            vlocka.style.width = `${velikost}px`;
+            vlocka.style.height = `${velikost}px`;
+            vlocka.style.animationDuration = `${Math.random() * 5 + (velikost < 8 ? 8 : 3)}s`;
+            vlocka.style.animationDelay = `${Math.random() * 3}s`;
+
+            const smer = Math.random() > 0.5 ? 1 : -1;
+            vlocka.style.transform = `translateX(${smer * (Math.random() * 10)}px)`;
+
+            container.appendChild(vlocka);
+
+            setTimeout(() => {
+                vlocka.remove();
+            }, 10000);
+        }
+
+        setInterval(vytvorVlocku, 100);
+
+        function gameOver() {
+            hudba.pause();
+            kolizeZvuk.play();
+            gameRunning = false;
+            alert(`Srážka! Hra skončila, Skóre: ${skore}, Čas: ${dobaCasu} s`);
+            location.reload();
+            // const stromy = document.querySelectorAll('.strom');
+            // stromy.forEach(strom => strom.remove()); // Odstraní všech stromů
+            //
+            //
+            // lyzar.style.display = 'none'; // Odstraní lyžaře z obrazovky
+            //
+            //
+            // document.getElementById('highscore').style.display = 'block';    // Zobrazí formulář pro zadání jména a skóre
+        }
+
+        // Zrychlování generování stromů každých 5 sekund
+        setInterval(() => {
+            if (gameRunning) {
+                stromInterval = Math.max(500, stromInterval - 100); // Minimální interval 500 ms
+                clearInterval(novyStrom); // Zrušíme aktuální interval
+                novyStrom = setInterval(() => {
+                    if (gameRunning) {
+                        generatorStromu();
+                    }
+                }, stromInterval);
+            }
+        }, 5000);
 
         // Zrychlování hry každé 2 sekundy
         setInterval(() => {
             if (gameRunning) {
-                rychlost += 1; // Zvyšujeme rychlost
+                rychlost += 1;
             }
         }, 2500);
     });
 
+    // function loadHighscore() {
+    //     const savedScores = JSON.parse(localStorage.getItem('highscores')) || [];
+    //     const table = document.getElementById('highscoreTable');
+    //     savedScores.forEach(score => {
+    //         const row = table.insertRow();
+    //         const nameCell = row.insertCell(0);
+    //         const scoreCell = row.insertCell(1);
+    //         nameCell.textContent = score.name;
+    //         scoreCell.textContent = score.score;
+    //     });
+    // }
+    //
+    // function saveScore(name, score) {
+    //     const savedScores = JSON.parse(localStorage.getItem('highscores')) || [];
+    //     savedScores.push({ name, score });
+    //     savedScores.sort((a, b) => b.score - a.score); // Seřadí skóre podle hodnoty sestupně
+    //     savedScores = savedScores.slice(0, 10); // Udržuje pouze top 10
+    //     localStorage.setItem('highscores', JSON.stringify(savedScores)); // Uloží skóre do localStorage
+    //     loadHighscore(); // Načte a zobrazí tabulku highscore
+    // }
+    //
+    // document.getElementById('submitScore').addEventListener('click', () => {
+    //     const playerName = document.getElementById('playerName').value;
+    //
+    //     // Ujistíme se, že hráč zadal jméno a skóre je větší než 0
+    //     if (playerName && skore > 0) {
+    //         saveScore(playerName, skore); // Zavoláme funkci pro uložení skóre
+    //         document.getElementById('playerName').value = ''; // Vyprázdníme pole pro jméno
+    //         document.getElementById('highscore').style.display = 'none'; // Skryjeme formulář po uložení
+    //     } else {
+    //         alert('Prosím, zadejte své jméno!');
+    //     }
+    // });
+    //
+    // loadHighscore(); // Načte tabulku highscore při startu hry
 </script>
 
 </body>
 
 </html>
 
-
-<!--pauza-->
 <!--sbírání bodů (jako stromy ale přičítaj se ke skore)-->
-<!--časovej limit? jestli zbyde časovej limit-->
